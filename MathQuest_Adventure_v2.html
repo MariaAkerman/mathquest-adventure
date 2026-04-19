@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MathQuest Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+
+<style>
+/* ═══════════════════════════════════════════════════
+   RESET & VARIABLES
+   ═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --purple:    #6C63FF;
+  --purple-dk: #4a3fd4;
+  --purple-lt: #9b94ff;
+  --pink:      #FF6584;
+  --pink-dk:   #d94060;
+  --green:     #43E97B;
+  --green-dk:  #26a857;
+  --yellow:    #FFD93D;
+  --orange:    #FF9A3C;
+  --cyan:      #38EAF7;
+  --bg1:       #1a1a2e;
+  --bg2:       #16213e;
+  --bg3:       #0f3460;
+  --card:      rgba(255,255,255,0.07);
+  --card-b:    rgba(255,255,255,0.15);
+  --white:     #ffffff;
+  --text-muted: rgba(255,255,255,0.6);
+  --radius:    22px;
+  --radius-lg: 32px;
+  --radius-pill: 999px;
+}
+
+/* ═══════════════════════════════════════════════════
+   BODY & BACKGROUND
+   ═══════════════════════════════════════════════════ */
+body {
+  min-height: 100vh;
+  background: var(--bg1);
+  font-family: 'Nunito', sans-serif;
+  color: var(--white);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated gradient background */
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(ellipse at 20% 20%, #2d1b69 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, #1a3a5c 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 50%, #0f3460 0%, transparent 70%),
+              linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  animation: bgShift 12s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  100% { filter: hue-rotate(15deg) brightness(1.08); }
+}
+
+/* Floating particle canvas */
+#particleCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   CONFETTI
+   ═══════════════════════════════════════════════════ */
+.confetti-piece {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  border-radius: 2px;
+  animation: confettiFall var(--dur, 1.4s) var(--delay, 0s) ease-in forwards;
+}
+@keyframes confettiFall {
+  0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translate(var(--tx,0px), var(--ty,400px)) rotate(var(--rot,540deg)) scale(0.3); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════
+   STAR FLY
+   ═══════════════════════════════════════════════════ */
+.star-fly {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 1.5rem;
+  line-height: 1;
+  animation: starFly var(--fdur, 0.7s) ease-in-out forwards;
+}
+@keyframes starFly {
+  0%   { transform: translate(0,0) scale(1.4); opacity: 1; }
+  60%  { opacity: 1; transform: translate(var(--fmx,0px), var(--fmy,-80px)) scale(0.9); }
+  100% { transform: translate(var(--flx,0px), var(--fly,-160px)) scale(0.3); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════
+   RIPPLE
+   ═══════════════════════════════════════════════════ */
+.ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 3px solid rgba(255,255,255,0.6);
+  animation: rippleOut 0.65s ease-out forwards;
+}
+@keyframes rippleOut {
+  0%   { width: 0; height: 0; opacity: 0.9; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  100% { width: 200px; height: 200px; opacity: 0; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+}
+
+/* ═══════════════════════════════════════════════════
+   SHAKE WRONG BUBBLE
+   ═══════════════════════════════════════════════════ */
+.bubble.gap.shake-wrong {
+  animation: bubbleShakeWrong 0.5s cubic-bezier(0.36,0.07,0.19,0.97) both !important;
+  border-color: rgba(255,100,100,0.9) !important;
+  box-shadow: 0 0 30px rgba(255,80,80,0.6) !important;
+}
+@keyframes bubbleShakeWrong {
+  0%,100% { transform: translateX(0) scale(1); }
+  15%     { transform: translateX(-10px) scale(1.1) rotate(-4deg); }
+  30%     { transform: translateX(10px)  scale(1.1) rotate(4deg); }
+  45%     { transform: translateX(-8px)  scale(1.05) rotate(-3deg); }
+  60%     { transform: translateX(8px)   scale(1.05) rotate(3deg); }
+  80%     { transform: translateX(-3px); }
+}
+
+/* ═══════════════════════════════════════════════════
+   CORRECT REVEAL BUBBLE
+   ═══════════════════════════════════════════════════ */
+.bubble.gap.correct-reveal {
+  animation: correctReveal 0.5s ease both !important;
+}
+@keyframes correctReveal {
+  0%   { transform: scale(0.7); }
+  55%  { transform: scale(1.3); box-shadow: 0 0 40px rgba(67,233,123,0.9); }
+  100% { transform: scale(1); }
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGE LAYOUT
+   ═══════════════════════════════════════════════════ */
+.page-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 28px 16px 56px;
+}
+
+/* ═══════════════════════════════════════════════════
+   HEADER / HERO
+   ═══════════════════════════════════════════════════ */
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+  animation: heroIn 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(-40px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.header-icon {
+  font-size: 80px;
+  display: block;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 6px 20px rgba(108,99,255,0.7));
+  animation: floatBounce 3s ease-in-out infinite;
+}
+@keyframes floatBounce {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  50%     { transform: translateY(-14px) rotate(3deg); }
+}
+
+.game-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(2.6rem, 9vw, 4.8rem);
+  letter-spacing: 1px;
+  line-height: 1;
+  background: linear-gradient(135deg, #fff 0%, var(--yellow) 40%, var(--pink) 80%, var(--purple-lt) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 4px 16px rgba(108,99,255,0.4));
+}
+
+.game-subtitle {
+  font-size: clamp(0.95rem, 3vw, 1.2rem);
+  font-weight: 800;
+  color: var(--cyan);
+  margin-top: 8px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 16px rgba(56,234,247,0.5);
+}
+
+/* ═══════════════════════════════════════════════════
+   GLASS CARD
+   ═══════════════════════════════════════════════════ */
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid var(--card-b);
+  border-radius: var(--radius-lg);
+  padding: 28px 26px 32px;
+  animation: slideUp 0.7s 0.25s ease both;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(255,255,255,0.04) inset;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION LABEL
+   ═══════════════════════════════════════════════════ */
+.section-label {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 0 10px rgba(56,234,247,0.4);
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: linear-gradient(90deg, rgba(56,234,247,0.5), transparent);
+  border-radius: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
+   NAME INPUT
+   ═══════════════════════════════════════════════════ */
+.name-input {
+  width: 100%;
+  padding: 13px 18px;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  margin-bottom: 22px;
+}
+.name-input::placeholder { color: rgba(255,255,255,0.35); font-weight: 500; }
+.name-input:focus {
+  border-color: var(--purple-lt);
+  background: rgba(108,99,255,0.12);
+  box-shadow: 0 0 0 4px rgba(108,99,255,0.2), 0 0 20px rgba(108,99,255,0.15);
+}
+
+/* ═══════════════════════════════════════════════════
+   AGE GRID
+   ═══════════════════════════════════════════════════ */
+.age-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+.age-btn {
+  flex: 1 1 calc(16.6% - 9px);
+  min-width: 50px;
+  padding: 10px 6px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  color: #fff;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.age-btn span {
+  display: block;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 800;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+.age-btn:hover {
+  background: rgba(108,99,255,0.25);
+  border-color: var(--purple-lt);
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 8px 20px rgba(108,99,255,0.35);
+}
+.age-btn:active { transform: translateY(1px) scale(0.97); }
+.age-btn.selected {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  border-color: rgba(255,255,255,0.4);
+  box-shadow: 0 6px 20px rgba(108,99,255,0.55), 0 0 0 3px rgba(255,255,255,0.15);
+  transform: translateY(-4px) scale(1.09);
+}
+
+/* ═══════════════════════════════════════════════════
+   AVATAR GRID
+   ═══════════════════════════════════════════════════ */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.avatar-btn {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+  background: rgba(255,255,255,0.07);
+  border: 2.5px solid rgba(255,255,255,0.15);
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  line-height: 1;
+  position: relative;
+}
+.avatar-btn:hover {
+  background: rgba(255,101,132,0.2);
+  border-color: var(--pink);
+  transform: scale(1.15) rotate(-6deg);
+  box-shadow: 0 8px 24px rgba(255,101,132,0.35);
+}
+.avatar-btn:active { transform: scale(0.95); }
+.avatar-btn.selected {
+  background: rgba(255,217,61,0.2);
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255,217,61,0.4), 0 8px 24px rgba(255,217,61,0.3);
+  transform: scale(1.18);
+}
+
+/* ═══════════════════════════════════════════════════
+   PLAY BUTTON
+   ═══════════════════════════════════════════════════ */
+.play-btn {
+  width: 100%;
+  padding: 17px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(1.4rem, 4vw, 1.75rem);
+  color: #fff;
+  letter-spacing: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow:
+    0 6px 0 var(--purple-dk),
+    0 10px 30px rgba(108,99,255,0.5);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.play-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -60%;
+  width: 45%;
+  height: 200%;
+  background: rgba(255,255,255,0.2);
+  transform: skewX(-22deg);
+  animation: shimmer 2.5s infinite;
+}
+.play-btn:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 0 var(--purple-dk), 0 18px 40px rgba(108,99,255,0.6);
+}
+.play-btn:active {
+  transform: translateY(4px) scale(0.98);
+  box-shadow: 0 2px 0 var(--purple-dk), 0 4px 12px rgba(108,99,255,0.3);
+}
+
+/* ═══════════════════════════════════════════════════
+   GAME SCREEN
+   ═══════════════════════════════════════════════════ */
+#gameScreen {
+  display: none;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 16px 56px;
+  animation: fadeIn 0.5s ease;
+}
+#gameScreen.visible { display: block; }
+
+/* ═══════════════════════════════════════════════════
+   GAME HEADER BAR
+   ═══════════════════════════════════════════════════ */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-lg);
+  padding: 12px 20px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+/* Avatar with pulsing glow ring */
+.gh-player { display: flex; align-items: center; gap: 12px; }
+
+.gh-avatar-wrap {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gh-avatar-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--purple), var(--pink), var(--cyan), var(--green), var(--yellow), var(--purple));
+  animation: spinRing 3s linear infinite;
+  z-index: 0;
+}
+.gh-avatar-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--purple), var(--pink), var(--cyan), var(--green), var(--yellow), var(--purple));
+  animation: spinRing 3s linear infinite;
+  filter: blur(6px);
+  opacity: 0.7;
+  z-index: 0;
+}
+@keyframes spinRing {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.gh-avatar-inner {
+  position: relative;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  background: var(--bg2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  animation: floatBounce 3s ease-in-out infinite;
+}
+
+.gh-name {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.15rem;
+  color: var(--yellow);
+  text-shadow: 0 0 12px rgba(255,217,61,0.5);
+}
+
+.gh-reto {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius-pill);
+  padding: 6px 18px;
+}
+.gh-reto span { color: var(--cyan); }
+
+.gh-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.15rem;
+  color: #fff;
+}
+.gh-score-val {
+  color: var(--yellow);
+  font-size: 1.5rem;
+  text-shadow: 0 0 14px rgba(255,217,61,0.6);
+  transition: transform 0.3s cubic-bezier(0.36,0.07,0.19,0.97);
+}
+.gh-score-val.pop { animation: scorePop 0.4s ease; }
+
+/* ═══════════════════════════════════════════════════
+   TIMER
+   ═══════════════════════════════════════════════════ */
+.timer-wrap {
+  width: 100%;
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--yellow));
+  border-radius: 10px;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(67,233,123,0.5);
+}
+.timer-label {
+  text-align: right;
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.timer-label span { color: var(--yellow); }
+
+/* ═══════════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════════ */
+.progress-bar-wrap {
+  width: 100%;
+  height: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--purple), var(--pink), var(--yellow));
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 12px rgba(108,99,255,0.5);
+}
+
+/* ═══════════════════════════════════════════════════
+   QUESTION CARD
+   ═══════════════════════════════════════════════════ */
+.question-card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid var(--card-b);
+  border-radius: var(--radius-lg);
+  padding: 30px 24px 30px;
+  text-align: center;
+  animation: slideUp 0.5s ease both;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+}
+
+.question-label {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--pink);
+  margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(255,101,132,0.5);
+}
+.question-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 22px;
+}
+
+/* ═══════════════════════════════════════════════════
+   BUBBLES
+   ═══════════════════════════════════════════════════ */
+.bubbles-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.bubble {
+  width: clamp(60px, 13vw, 80px);
+  height: clamp(60px, 13vw, 80px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 900;
+  position: relative;
+  animation: bubbleIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* 3D layered number bubble */
+.bubble.num {
+  background: linear-gradient(145deg, #8a7fff 0%, var(--purple) 45%, #3d35b0 100%);
+  border: 3px solid rgba(255,255,255,0.3);
+  color: #fff;
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.25) inset,
+    0 -3px 0 rgba(0,0,0,0.3) inset,
+    0 8px 0 #3730a3,
+    0 12px 24px rgba(108,99,255,0.5),
+    0 0 0 4px rgba(108,99,255,0.15);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.bubble.num:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.25) inset,
+    0 -3px 0 rgba(0,0,0,0.3) inset,
+    0 10px 0 #3730a3,
+    0 16px 30px rgba(108,99,255,0.6),
+    0 0 0 4px rgba(108,99,255,0.2);
+}
+
+/* Gap "?" bubble — pulsing */
+.bubble.gap {
+  background: rgba(255,217,61,0.1);
+  border: 3px dashed var(--yellow);
+  color: var(--yellow);
+  box-shadow:
+    0 0 0 4px rgba(255,217,61,0.1),
+    0 0 24px rgba(255,217,61,0.3);
+  animation: gapPulse 2s ease-in-out infinite, bubbleIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+  text-shadow: 0 0 10px rgba(255,217,61,0.8);
+}
+@keyframes gapPulse {
+  0%,100% { box-shadow: 0 0 0 4px rgba(255,217,61,0.1), 0 0 24px rgba(255,217,61,0.3); border-color: var(--yellow); }
+  50%     { box-shadow: 0 0 0 8px rgba(255,217,61,0.2), 0 0 40px rgba(255,217,61,0.55); border-color: #ffe785; }
+}
+
+.bubble-sep {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.5rem;
+  color: rgba(255,255,255,0.35);
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   ANSWER INPUT + CHECK BUTTON
+   ═══════════════════════════════════════════════════ */
+.answer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.answer-input {
+  width: 130px;
+  padding: 14px 10px;
+  background: rgba(255,255,255,0.1);
+  border: 3px solid rgba(255,255,255,0.25);
+  border-radius: var(--radius);
+  font-family: 'Fredoka One', cursive;
+  font-size: 2.2rem;
+  color: #fff;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.answer-input::placeholder { color: rgba(255,255,255,0.25); font-size: 1.2rem; }
+.answer-input:focus {
+  border-color: var(--purple-lt);
+  background: rgba(108,99,255,0.15);
+  box-shadow: 0 0 0 4px rgba(108,99,255,0.2), 0 0 24px rgba(108,99,255,0.2);
+}
+
+.check-btn {
+  padding: 14px 30px;
+  background: linear-gradient(135deg, var(--green) 0%, #1db956 100%);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.25rem;
+  color: #fff;
+  letter-spacing: 1px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow:
+    0 5px 0 var(--green-dk),
+    0 10px 24px rgba(67,233,123,0.4);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.check-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -60%;
+  width: 45%; height: 200%;
+  background: rgba(255,255,255,0.22);
+  transform: skewX(-22deg);
+  animation: shimmer 2.5s infinite;
+}
+.check-btn:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 8px 0 var(--green-dk), 0 16px 30px rgba(67,233,123,0.5);
+}
+.check-btn:active {
+  transform: translateY(4px) scale(0.97);
+  box-shadow: 0 1px 0 var(--green-dk), 0 3px 10px rgba(67,233,123,0.3);
+}
+.check-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+/* ═══════════════════════════════════════════════════
+   FEEDBACK BOX
+   ═══════════════════════════════════════════════════ */
+.feedback-box {
+  margin-top: 20px;
+  padding: 14px 22px;
+  border-radius: var(--radius);
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.85) translateY(8px);
+  transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none;
+}
+.feedback-box.show { opacity: 1; transform: scale(1) translateY(0); }
+.feedback-box.correct {
+  background: rgba(67,233,123,0.15);
+  border: 2px solid rgba(67,233,123,0.5);
+  color: #7dffb3;
+  box-shadow: 0 0 24px rgba(67,233,123,0.25);
+}
+.feedback-box.wrong {
+  background: rgba(255,101,132,0.15);
+  border: 2px solid rgba(255,101,132,0.5);
+  color: #ffaabf;
+  box-shadow: 0 0 24px rgba(255,101,132,0.25);
+}
+
+/* ═══════════════════════════════════════════════════
+   ATTEMPT DOTS
+   ═══════════════════════════════════════════════════ */
+.attempt-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 18px;
+}
+.attempt-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: transparent;
+  transition: all 0.3s;
+}
+.attempt-dot.used {
+  background: var(--pink);
+  border-color: var(--pink);
+  box-shadow: 0 0 10px rgba(255,101,132,0.5);
+}
+
+/* ═══════════════════════════════════════════════════
+   FLOATING POINTS
+   ═══════════════════════════════════════════════════ */
+.float-pts {
+  position: fixed;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.8rem;
+  color: var(--yellow);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(255,217,61,0.8);
+  pointer-events: none;
+  z-index: 9999;
+  animation: floatUp 1.2s ease forwards;
+}
+.float-pts.bonus { color: var(--green); text-shadow: 2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(67,233,123,0.8); }
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  55%  { opacity: 1; transform: translateY(-65px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-110px) scale(0.8); }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESULTS SCREEN
+   ═══════════════════════════════════════════════════ */
+.results-screen {
+  display: none;
+  text-align: center;
+  padding: 10px 0 20px;
+  animation: bounceIn 0.7s ease both;
+}
+.results-screen.visible { display: block; }
+
+.results-trophy {
+  font-size: 96px;
+  animation: floatBounce 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 10px 24px rgba(255,217,61,0.5));
+}
+.results-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(2.1rem, 7vw, 3.2rem);
+  background: linear-gradient(135deg, var(--yellow), var(--orange), var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-top: 14px;
+  filter: drop-shadow(0 2px 8px rgba(255,217,61,0.3));
+}
+.results-score-label {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--text-muted);
+  margin-top: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.results-score-big {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(3.5rem, 11vw, 5.5rem);
+  color: var(--yellow);
+  text-shadow: 0 0 30px rgba(255,217,61,0.5), 0 4px 0 rgba(0,0,0,0.3);
+  line-height: 1.1;
+}
+.results-msg {
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+  margin-top: 10px;
+  padding: 0 20px;
+}
+.results-stars {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 18px 0;
+  font-size: 3rem;
+}
+.results-stars span {
+  animation: starPop 0.45s ease both;
+  filter: drop-shadow(0 4px 12px rgba(255,217,61,0.5));
+}
+.results-stars span:nth-child(1) { animation-delay: 0.1s; }
+.results-stars span:nth-child(2) { animation-delay: 0.25s; }
+.results-stars span:nth-child(3) { animation-delay: 0.42s; }
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+.stat-box {
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 18px;
+  padding: 12px 20px;
+  text-align: center;
+  min-width: 90px;
+  transition: transform 0.2s ease;
+}
+.stat-box:hover { transform: translateY(-3px); }
+.stat-num {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(56,234,247,0.5);
+}
+.stat-lbl {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.results-btns {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+.btn-replay {
+  padding: 15px 34px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.25rem;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--purple-dk), 0 10px 24px rgba(108,99,255,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.btn-replay:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 8px 0 var(--purple-dk), 0 16px 32px rgba(108,99,255,0.55);
+}
+.btn-replay:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--purple-dk); }
+.btn-home {
+  padding: 15px 34px;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: var(--radius-pill);
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.25rem;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-home:hover { background: rgba(255,255,255,0.2); transform: scale(1.04); }
+
+/* ═══════════════════════════════════════════════════
+   KEYFRAMES SHARED
+   ═══════════════════════════════════════════════════ */
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.55) translateY(-30px); }
+  65%  { opacity: 1; transform: scale(1.06) translateY(4px); }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes shimmer {
+  0%   { left: -60%; }
+  100% { left: 130%; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes bubbleIn {
+  0%   { opacity: 0; transform: scale(0) rotate(-20deg); }
+  70%  { transform: scale(1.12) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes scorePop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.7); }
+  100% { transform: scale(1); }
+}
+@keyframes starPop {
+  0%   { opacity: 0; transform: scale(0) rotate(-20deg); }
+  70%  { transform: scale(1.35) rotate(5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .card { padding: 18px 14px 22px; }
+  .avatar-grid { gap: 7px; }
+  .age-btn { min-width: 44px; font-size: 1rem; }
+  .game-header { padding: 10px 14px; }
+  .bubble { width: 54px; height: 54px; font-size: 1.4rem; }
+  .bubbles-row { gap: 7px; }
+  .stats-row { gap: 10px; }
+  .stat-box { padding: 10px 14px; min-width: 78px; }
+  .gh-avatar-wrap { width: 44px; height: 44px; }
+  .gh-avatar-inner { width: 36px; height: 36px; font-size: 1.4rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     BACKGROUNDS
+     ═══════════════════════════════════════════════════ -->
+<div class="bg-gradient"></div>
+<canvas id="particleCanvas"></canvas>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN SCREEN
+     ═══════════════════════════════════════════════════ -->
+<div class="page-wrapper" id="mainScreen">
+  <header class="header">
+    <span class="header-icon">🧮</span>
+    <h1 class="game-title">MathQuest<br>Adventure</h1>
+    <p class="game-subtitle">¡La aventura matemática empieza! 🌟</p>
+  </header>
+
+  <div class="card">
+    <p class="section-label">✏️ Tu nombre</p>
+    <input type="text" id="playerName" class="name-input"
+      placeholder="¿Cómo te llamas?" maxlength="12"
+      autocomplete="off" spellcheck="false"/>
+
+    <p class="section-label">🎂 Tu edad</p>
+    <div class="age-grid" id="ageGrid"></div>
+
+    <p class="section-label">🎭 Elige tu personaje</p>
+    <div class="avatar-grid" id="avatarGrid"></div>
+
+    <button class="play-btn" onclick="startGame()">🎮 ¡JUGAR!</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     GAME SCREEN
+     ═══════════════════════════════════════════════════ -->
+<div id="gameScreen">
+
+  <!-- Header bar with avatar glow ring -->
+  <div class="game-header">
+    <div class="gh-player">
+      <div class="gh-avatar-wrap">
+        <div class="gh-avatar-inner" id="ghAvatar">🦊</div>
+      </div>
+      <span class="gh-name" id="ghName">Jugador</span>
+    </div>
+    <div class="gh-reto">Reto <span id="ghCurrent">1</span> de <span id="ghTotal">5</span></div>
+    <div class="gh-score" id="ghScoreBox">⭐ <span class="gh-score-val" id="ghScore">0</span></div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+  </div>
+
+  <!-- Question zone -->
+  <div id="questionZone">
+    <div class="question-card" id="questionCard">
+      <p class="question-label">¿Qué número falta?</p>
+      <p class="question-title" id="questionHint">Encuentra el patrón</p>
+
+      <div style="margin-bottom:4px">
+        <div class="timer-label">⏱ Tiempo: <span id="timerVal">10</span>s — ¡rápido = más puntos!</div>
+        <div class="timer-wrap"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+      </div>
+
+      <div class="attempt-dots" id="attemptDots">
+        <div class="attempt-dot" id="dot0"></div>
+        <div class="attempt-dot" id="dot1"></div>
+      </div>
+
+      <div class="bubbles-row" id="bubblesRow"></div>
+
+      <div class="answer-row">
+        <input type="number" id="answerInput" class="answer-input"
+          placeholder="?" min="0" max="999"/>
+        <button class="check-btn" id="checkBtn" onclick="checkAnswer()">✔ Comprobar</button>
+      </div>
+
+      <div class="feedback-box" id="feedbackBox"></div>
+    </div>
+  </div>
+
+  <!-- Results screen -->
+  <div class="results-screen" id="resultsScreen">
+    <div class="results-trophy" id="resultsTrophy">🏆</div>
+    <h2 class="results-title" id="resultsTitle">¡Aventura completada!</h2>
+    <p class="results-score-label">Puntuación final</p>
+    <p class="results-score-big" id="resultsBig">0</p>
+    <div class="results-stars" id="resultsStars"></div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" id="statCorrect">0</div><div class="stat-lbl">Correctas</div></div>
+      <div class="stat-box"><div class="stat-num" id="statBonus">0</div><div class="stat-lbl">Bonus velocidad</div></div>
+      <div class="stat-box"><div class="stat-num" id="statFirst">0</div><div class="stat-lbl">1er intento</div></div>
+    </div>
+    <p class="results-msg" id="resultsMsg">¡Eres increíble!</p>
+    <div class="results-btns">
+      <button class="btn-replay" onclick="replayGame()">🔄 ¡Jugar de nuevo!</button>
+      <button class="btn-home" onclick="goHome()">👤 Cambiar jugador</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   1. PARTÍCULAS FLOTANTES (fondo)
+   ════════════════════════════════════════ */
+(function initParticles() {
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles;
+
+  const COLORS = [
+    'rgba(108,99,255,0.35)',
+    'rgba(255,101,132,0.3)',
+    'rgba(67,233,123,0.28)',
+    'rgba(56,234,247,0.3)',
+    'rgba(255,217,61,0.25)',
+  ];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 28 + 6,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      speedX: (Math.random() - 0.5) * 0.35,
+      speedY: -(Math.random() * 0.4 + 0.1),
+      alpha: Math.random() * 0.6 + 0.2,
+      pulse: Math.random() * Math.PI * 2,
+    };
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    (particles = particles || Array.from({ length: 55 }, createParticle)).forEach(p => {
+      p.pulse += 0.018;
+      p.x += p.speedX;
+      p.y += p.speedY;
+      if (p.y < -p.r * 2) { p.y = H + p.r; p.x = Math.random() * W; }
+      if (p.x < -p.r) p.x = W + p.r;
+      if (p.x > W + p.r) p.x = -p.r;
+
+      const a = p.alpha * (0.7 + 0.3 * Math.sin(p.pulse));
+      ctx.globalAlpha = a;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+})();
+
+/* ════════════════════════════════════════
+   2. CONFETI
+   ════════════════════════════════════════ */
+const CONFETTI_COLORS = [
+  '#6C63FF','#FF6584','#43E97B','#38EAF7','#FFD93D',
+  '#FF9A3C','#ff80d0','#ffffff','#a78bfa'
+];
+const CONFETTI_SHAPES = ['square','circle','strip'];
+
+function spawnConfetti(originEl, count = 55) {
+  const rect = originEl.getBoundingClientRect();
+  const ox = rect.left + rect.width / 2;
+  const oy = rect.top + rect.height / 2;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const color = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    const shape = CONFETTI_SHAPES[Math.floor(Math.random() * CONFETTI_SHAPES.length)];
+    const size = 6 + Math.random() * 10;
+    const angle = (Math.random() * 360 - 180) * (Math.PI / 180);
+    const dist = 120 + Math.random() * 220;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist + 80;
+    const rot = (Math.random() - 0.5) * 720;
+    const dur = 0.9 + Math.random() * 0.7;
+    const delay = Math.random() * 0.18;
+    el.style.cssText = `
+      left:${ox}px;top:${oy}px;
+      width:${shape === 'strip' ? size * 0.4 : size}px;
+      height:${shape === 'strip' ? size * 2.5 : size}px;
+      background:${color};
+      border-radius:${shape === 'circle' ? '50%' : shape === 'strip' ? '2px' : '3px'};
+      --tx:${tx}px;--ty:${ty}px;--rot:${rot}deg;
+      --dur:${dur}s;--delay:${delay}s;
+      opacity:1;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), (dur + delay) * 1000 + 100);
+  }
+}
+
+/* ════════════════════════════════════════
+   3. STAR FLY
+   ════════════════════════════════════════ */
+function flyStarToScore(fromEl) {
+  const fromRect = fromEl.getBoundingClientRect();
+  const toRect = document.getElementById('ghScoreBox').getBoundingClientRect();
+  const fx = fromRect.left + fromRect.width / 2;
+  const fy = fromRect.top + fromRect.height / 2;
+  const tx = toRect.left + toRect.width / 2;
+  const ty = toRect.top + toRect.height / 2;
+  const stars = ['⭐','✨','🌟'];
+  for (let i = 0; i < 3; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'star-fly';
+      el.textContent = stars[i % stars.length];
+      const jx = (Math.random() - 0.5) * 28;
+      const jy = (Math.random() - 0.5) * 28;
+      el.style.cssText = `
+        left:${fx - 12 + jx}px;top:${fy - 12 + jy}px;
+        --flx:${tx - fx - jx}px;--fly:${ty - fy - jy}px;
+        --fmx:${(tx - fx - jx) * 0.5}px;--fmy:${(ty - fy - jy) * 0.5 - 40}px;
+        --fdur:${0.5 + i * 0.1}s;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 900);
+    }, i * 80);
+  }
+}
+
+/* ════════════════════════════════════════
+   4. RIPPLE
+   ════════════════════════════════════════ */
+function spawnRipple(btn) {
+  btn.querySelectorAll('.ripple-wave').forEach(r => r.remove());
+  const r = document.createElement('span');
+  r.className = 'ripple-wave';
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 750);
+}
+
+/* ════════════════════════════════════════
+   5. SHAKE burbuja "?"
+   ════════════════════════════════════════ */
+function shakeGapBubble() {
+  document.querySelectorAll('.bubble.gap').forEach(g => {
+    g.classList.remove('shake-wrong');
+    void g.offsetWidth;
+    g.classList.add('shake-wrong');
+    setTimeout(() => g.classList.remove('shake-wrong'), 550);
+  });
+}
+
+/* ════════════════════════════════════════
+   PLAYER STATE & SETUP
+   ════════════════════════════════════════ */
+const player = { name: '', age: null, avatar: '🦊' };
+
+// Build age buttons
+const ages = [5, 6, 7, 8, 9, 10];
+const ageGrid = document.getElementById('ageGrid');
+ages.forEach(age => {
+  const btn = document.createElement('button');
+  btn.className = 'age-btn';
+  btn.innerHTML = `${age}<span>años</span>`;
+  btn.setAttribute('aria-label', `${age} años`);
+  btn.addEventListener('click', () => {
+    player.age = age;
+    document.querySelectorAll('.age-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+  ageGrid.appendChild(btn);
+});
+
+// Build avatar buttons
+const avatars = ['🦊','🐸','🦁','🐧','🦄','🤖'];
+const avatarGrid = document.getElementById('avatarGrid');
+avatars.forEach(emoji => {
+  const btn = document.createElement('button');
+  btn.className = 'avatar-btn';
+  if (emoji === player.avatar) btn.classList.add('selected');
+  btn.textContent = emoji;
+  btn.setAttribute('aria-label', `Avatar ${emoji}`);
+  btn.addEventListener('click', () => {
+    player.avatar = emoji;
+    document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+  avatarGrid.appendChild(btn);
+});
+
+/* ════════════════════════════════════════
+   SERIES GENERATOR
+   ════════════════════════════════════════ */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function randomGapIndex(len) {
+  return Math.floor(Math.random() * (len - 2)) + 1;
+}
+
+function generateSeries(age) {
+  const allSeries = [];
+  if (age <= 6) {
+    const pools = [
+      { seq:[2,4,6,8,10],   hint:'Serie de 2 en 2' },
+      { seq:[4,6,8,10,12],  hint:'Serie de 2 en 2' },
+      { seq:[1,2,3,4,5],    hint:'Serie de 1 en 1' },
+      { seq:[6,7,8,9,10],   hint:'Serie de 1 en 1' },
+      { seq:[10,12,14,16,18],hint:'Serie de 2 en 2' },
+      { seq:[2,4,6,8,10,12],hint:'Serie de 2 en 2' },
+      { seq:[1,3,5,7,9],    hint:'Serie de 2 en 2' },
+      { seq:[5,6,7,8,9],    hint:'Serie de 1 en 1' },
+      { seq:[8,10,12,14,16],hint:'Serie de 2 en 2' },
+      { seq:[3,4,5,6,7],    hint:'Serie de 1 en 1' },
+    ];
+    shuffle(pools).slice(0, 5).forEach(p => {
+      const gi = randomGapIndex(p.seq.length);
+      allSeries.push({ numbers:p.seq, gapIndex:gi, answer:p.seq[gi], hint:p.hint });
+    });
+  } else if (age <= 8) {
+    const pools = [
+      { seq:[3,6,9,12,15],   hint:'Serie de 3 en 3' },
+      { seq:[5,10,15,20,25], hint:'Serie de 5 en 5' },
+      { seq:[10,15,20,25,30],hint:'Serie de 5 en 5' },
+      { seq:[6,9,12,15,18],  hint:'Serie de 3 en 3' },
+      { seq:[15,20,25,30,35],hint:'Serie de 5 en 5' },
+      { seq:[9,12,15,18,21], hint:'Serie de 3 en 3' },
+      { seq:[20,25,30,35,40],hint:'Serie de 5 en 5' },
+      { seq:[12,15,18,21,24],hint:'Serie de 3 en 3' },
+      { seq:[25,30,35,40,45],hint:'Serie de 5 en 5' },
+      { seq:[30,33,36,39,42],hint:'Serie de 3 en 3' },
+    ];
+    shuffle(pools).slice(0, 5).forEach(p => {
+      const gi = randomGapIndex(p.seq.length);
+      allSeries.push({ numbers:p.seq, gapIndex:gi, answer:p.seq[gi], hint:p.hint });
+    });
+  } else {
+    const pools = [
+      { seq:[50,45,40,35,30],    hint:'Serie restando 5' },
+      { seq:[100,90,80,70,60],   hint:'Serie restando 10' },
+      { seq:[2,4,8,16,32],       hint:'Serie doble' },
+      { seq:[1,4,7,10,13],       hint:'Serie de 3 en 3' },
+      { seq:[20,17,14,11,8],     hint:'Serie restando 3' },
+      { seq:[5,10,20,40,80],     hint:'Serie doble' },
+      { seq:[64,32,16,8,4],      hint:'Serie a la mitad' },
+      { seq:[3,7,11,15,19],      hint:'Serie de 4 en 4' },
+      { seq:[100,75,50,25,0],    hint:'Serie restando 25' },
+      { seq:[1,2,4,8,16,32],     hint:'Serie doble' },
+    ];
+    shuffle(pools).slice(0, 5).forEach(p => {
+      const gi = randomGapIndex(p.seq.length);
+      allSeries.push({ numbers:p.seq, gapIndex:gi, answer:p.seq[gi], hint:p.hint });
+    });
+  }
+  return allSeries;
+}
+
+/* ════════════════════════════════════════
+   GAME STATE
+   ════════════════════════════════════════ */
+let series = [], currentQ = 0, score = 0;
+const TOTAL_Q = 5;
+let attempts = 0, questionStartTime = 0, timerInterval = null;
+const TIMER_SEC = 10;
+let totalCorrect = 0, totalBonus = 0, totalFirstAttempt = 0;
+
+/* ════════════════════════════════════════
+   START GAME
+   ════════════════════════════════════════ */
+function startGame() {
+  const nameInput = document.getElementById('playerName');
+  const name = nameInput.value.trim();
+  if (!name) {
+    nameInput.style.borderColor = '#ff4a4a';
+    nameInput.setAttribute('placeholder', '⚠️ ¡Escribe tu nombre primero!');
+    setTimeout(() => {
+      nameInput.style.borderColor = '';
+      nameInput.setAttribute('placeholder', '¿Cómo te llamas?');
+    }, 1800);
+    nameInput.focus();
+    return;
+  }
+  player.name = name;
+  const age = player.age || 7;
+  series = generateSeries(age);
+  currentQ = 0; score = 0;
+  totalCorrect = 0; totalBonus = 0; totalFirstAttempt = 0;
+
+  document.getElementById('ghAvatar').textContent = player.avatar;
+  document.getElementById('ghName').textContent = player.name;
+  document.getElementById('ghTotal').textContent = TOTAL_Q;
+  document.getElementById('ghScore').textContent = score;
+  document.getElementById('mainScreen').style.display = 'none';
+  document.getElementById('gameScreen').classList.add('visible');
+  showQuestion();
+}
+
+/* ════════════════════════════════════════
+   SHOW QUESTION
+   ════════════════════════════════════════ */
+function showQuestion() {
+  const q = series[currentQ];
+  document.getElementById('resultsScreen').classList.remove('visible');
+  document.getElementById('questionZone').style.display = '';
+  document.getElementById('ghCurrent').textContent = currentQ + 1;
+  document.getElementById('progressBar').style.width = ((currentQ / TOTAL_Q) * 100) + '%';
+  document.getElementById('questionHint').textContent = q.hint + ' 🔢';
+  attempts = 0;
+  updateAttemptDots();
+
+  const row = document.getElementById('bubblesRow');
+  row.innerHTML = '';
+  q.numbers.forEach((num, idx) => {
+    if (idx > 0) {
+      const sep = document.createElement('span');
+      sep.className = 'bubble-sep';
+      sep.textContent = ',';
+      row.appendChild(sep);
+    }
+    const bub = document.createElement('div');
+    if (idx === q.gapIndex) {
+      bub.className = 'bubble gap';
+      bub.textContent = '?';
+    } else {
+      bub.className = 'bubble num';
+      bub.textContent = num;
+    }
+    bub.style.animationDelay = (idx * 0.08) + 's';
+    row.appendChild(bub);
+  });
+
+  const input = document.getElementById('answerInput');
+  input.value = ''; input.disabled = false;
+  document.getElementById('feedbackBox').className = 'feedback-box';
+  document.getElementById('feedbackBox').textContent = '';
+  document.getElementById('checkBtn').disabled = false;
+  startTimer();
+  setTimeout(() => input.focus(), 100);
+}
+
+function updateAttemptDots() {
+  for (let i = 0; i < 2; i++) {
+    document.getElementById('dot' + i).classList.toggle('used', i < attempts);
+  }
+}
+
+/* ════════════════════════════════════════
+   TIMER
+   ════════════════════════════════════════ */
+function startTimer() {
+  clearInterval(timerInterval);
+  questionStartTime = Date.now();
+  const fill = document.getElementById('timerFill');
+  const lbl = document.getElementById('timerVal');
+  fill.style.background = 'linear-gradient(90deg,var(--green),var(--yellow))';
+  fill.style.width = '100%';
+  lbl.textContent = TIMER_SEC;
+  timerInterval = setInterval(() => {
+    const elapsed = (Date.now() - questionStartTime) / 1000;
+    const remaining = Math.max(0, TIMER_SEC - elapsed);
+    fill.style.width = ((remaining / TIMER_SEC) * 100) + '%';
+    lbl.textContent = Math.ceil(remaining);
+    if (remaining < 4)
+      fill.style.background = 'linear-gradient(90deg,var(--pink),var(--orange))';
+    else if (remaining < 7)
+      fill.style.background = 'linear-gradient(90deg,var(--yellow),var(--green))';
+  }, 100);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  return (Date.now() - questionStartTime) / 1000;
+}
+
+/* ════════════════════════════════════════
+   FLOATING POINTS
+   ════════════════════════════════════════ */
+function showFloatingPoints(pts, isBonus, targetEl) {
+  const el = document.createElement('div');
+  el.className = 'float-pts' + (isBonus ? ' bonus' : '');
+  el.textContent = (pts > 0 ? '+' : '') + pts + (isBonus ? ' ⚡rápido!' : '');
+  const rect = targetEl
+    ? targetEl.getBoundingClientRect()
+    : { top: 300, left: window.innerWidth / 2, width: 0, height: 0 };
+  el.style.left = (rect.left + rect.width / 2 - 60) + 'px';
+  el.style.top = (rect.top - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1400);
+}
+
+/* ════════════════════════════════════════
+   ANIMATE SCORE
+   ════════════════════════════════════════ */
+function animateScore(from, to) {
+  const el = document.getElementById('ghScore');
+  const dur = 600, steps = 30, step = (to - from) / steps;
+  let cur = from, count = 0;
+  const iv = setInterval(() => {
+    count++; cur += step;
+    if (count >= steps) { cur = to; clearInterval(iv); }
+    el.textContent = Math.round(cur);
+  }, dur / steps);
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
+/* ════════════════════════════════════════
+   CHECK ANSWER
+   ════════════════════════════════════════ */
+function checkAnswer() {
+  const input = document.getElementById('answerInput');
+  const btn = document.getElementById('checkBtn');
+  const val = input.value.trim();
+  spawnRipple(btn);
+  if (val === '') {
+    input.style.animation = 'shake 0.4s ease';
+    setTimeout(() => input.style.animation = '', 450);
+    input.focus();
+    return;
+  }
+  const elapsed = stopTimer();
+  const userAnswer = parseInt(val, 10);
+  const correct = series[currentQ].answer;
+  const fb = document.getElementById('feedbackBox');
+  btn.disabled = true; input.disabled = true;
+
+  if (userAnswer === correct) {
+    let gained = (attempts === 0) ? 100 : 50;
+    let bonusPts = 0;
+    if (attempts === 0) totalFirstAttempt++;
+    totalCorrect++;
+    const fastBonus = elapsed < 5;
+    if (fastBonus) { bonusPts = 25; totalBonus += 25; }
+    const oldScore = score;
+    score += gained + bonusPts;
+    const card = document.getElementById('questionCard');
+    spawnConfetti(card, 60);
+    showFloatingPoints(gained, false, card);
+    if (fastBonus) setTimeout(() => showFloatingPoints(bonusPts, true, card), 380);
+    setTimeout(() => flyStarToScore(input), 150);
+    setTimeout(() => animateScore(oldScore, score), 300);
+    fb.className = 'feedback-box correct show';
+    fb.textContent = getCorrectMsg();
+    document.querySelectorAll('.bubble.gap').forEach(g => {
+      g.textContent = correct;
+      g.className = 'bubble gap correct-reveal';
+      g.style.background = 'linear-gradient(135deg,var(--green),#1db956)';
+      g.style.borderStyle = 'solid';
+      g.style.borderColor = 'rgba(255,255,255,0.4)';
+      g.style.color = '#fff';
+      g.style.boxShadow = '0 8px 0 var(--green-dk), 0 12px 28px rgba(67,233,123,0.5)';
+      g.style.textShadow = '0 2px 4px rgba(0,0,0,0.3)';
+    });
+    setTimeout(() => {
+      currentQ++;
+      if (currentQ < TOTAL_Q) showQuestion(); else showResults();
+    }, 1700);
+  } else {
+    attempts++;
+    updateAttemptDots();
+    shakeGapBubble();
+    fb.className = 'feedback-box wrong show';
+    if (attempts >= 2) {
+      fb.textContent = getWrongMsg(correct);
+      document.querySelectorAll('.bubble.gap').forEach(g => {
+        g.textContent = correct;
+        g.style.background = 'linear-gradient(135deg,var(--pink),#c0392b)';
+        g.style.borderStyle = 'solid';
+        g.style.borderColor = 'rgba(255,120,120,0.5)';
+        g.style.color = '#fff';
+        g.style.animation = 'none';
+        g.style.boxShadow = '0 8px 0 var(--pink-dk)';
+      });
+      setTimeout(() => {
+        currentQ++;
+        if (currentQ < TOTAL_Q) showQuestion(); else showResults();
+      }, 1900);
+    } else {
+      fb.textContent = '¡Inténtalo de nuevo! Tienes otro intento 💪';
+      setTimeout(() => {
+        input.disabled = false; input.value = '';
+        btn.disabled = false; fb.className = 'feedback-box';
+        startTimer(); input.focus();
+      }, 1100);
+    }
+  }
+}
+
+function getCorrectMsg() {
+  const msgs = ['¡GENIAL! 🌟','¡PERFECTO! 🎉','¡BRILLANTE! ✨','¡INCREÍBLE! 🚀','¡LO TIENES! 💫','¡SÚPER! ⭐'];
+  return msgs[Math.floor(Math.random() * msgs.length)];
+}
+function getWrongMsg(c) {
+  const msgs = [
+    `¡Casi! El número era ${c} 💪`,
+    `¡Buen intento! Era el ${c} 🌈`,
+    `¡Sigue así! La respuesta era ${c} 🔥`,
+    `¡No te rindas! Era ${c} ⚡`
+  ];
+  return msgs[Math.floor(Math.random() * msgs.length)];
+}
+
+// Enter key shortcut
+document.getElementById('answerInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkAnswer();
+});
+
+/* ════════════════════════════════════════
+   RESULTS
+   ════════════════════════════════════════ */
+function animateResultsBig(target) {
+  const el = document.getElementById('resultsBig');
+  const dur = 1200, steps = 40, step = target / steps;
+  let cur = 0, count = 0;
+  const iv = setInterval(() => {
+    count++; cur += step;
+    if (count >= steps) { cur = target; clearInterval(iv); }
+    el.textContent = Math.round(cur);
+  }, dur / steps);
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  document.getElementById('questionZone').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('visible');
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('statCorrect').textContent = totalCorrect;
+  document.getElementById('statBonus').textContent = totalBonus;
+  document.getElementById('statFirst').textContent = totalFirstAttempt;
+  animateResultsBig(score);
+
+  let starsCount, trophy, title, msg;
+  if (score >= 400) {
+    starsCount = 3; trophy = '🏆'; title = '¡LEYENDA!';
+    msg = `¡Eres una LEYENDA, ${player.name}! 🏆`;
+  } else if (score >= 200) {
+    starsCount = 2; trophy = '🥇'; title = '¡GENIAL!';
+    msg = `¡Qué bien lo haces, ${player.name}! ⭐`;
+  } else {
+    starsCount = 1; trophy = '🌟'; title = '¡BUEN INTENTO!';
+    msg = `¡Sigue practicando, campeón! 💪`;
+  }
+  document.getElementById('resultsTrophy').textContent = trophy;
+  document.getElementById('resultsTitle').textContent = title;
+  document.getElementById('resultsMsg').textContent = msg;
+
+  const starsEl = document.getElementById('resultsStars');
+  starsEl.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('span');
+    s.textContent = i < starsCount ? '⭐' : '☆';
+    starsEl.appendChild(s);
+  }
+  setTimeout(() => {
+    const rs = document.getElementById('resultsScreen');
+    spawnConfetti(rs, 80);
+    if (starsCount === 3) setTimeout(() => spawnConfetti(rs, 60), 500);
+  }, 400);
+}
+
+/* ════════════════════════════════════════
+   REPLAY / HOME
+   ════════════════════════════════════════ */
+function replayGame() {
+  const age = player.age || 7;
+  series = generateSeries(age);
+  currentQ = 0; score = 0;
+  totalCorrect = 0; totalBonus = 0; totalFirstAttempt = 0;
+  document.getElementById('ghScore').textContent = 0;
+  document.getElementById('progressBar').style.width = '0%';
+  showQuestion();
+}
+
+function goHome() {
+  clearInterval(timerInterval);
+  document.getElementById('gameScreen').classList.remove('visible');
+  document.getElementById('mainScreen').style.display = '';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos de editor
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Dependencias de Node (no son parte de este proyecto)
+node_modules/
+
+# Logs
+*.log
+
+# Versiones temporales
+*.tmp
+*~
