@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+S<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
@@ -332,35 +332,52 @@ body {
 .avatar-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  margin-bottom: 28px;
+  gap: 9px;
+  margin-bottom: 22px;
 }
 .avatar-btn {
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.7rem, 5vw, 2.3rem);
-  background: rgba(255,255,255,0.07);
-  border: 2.5px solid rgba(255,255,255,0.15);
-  border-radius: 18px;
+  padding: 10px 6px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.18s ease;
-  line-height: 1;
   position: relative;
+  overflow: hidden;
 }
 .avatar-btn:hover {
-  background: rgba(255,101,132,0.2);
-  border-color: var(--pink);
-  transform: scale(1.15) rotate(-6deg);
-  box-shadow: 0 8px 24px rgba(255,101,132,0.35);
+  background: rgba(108,99,255,0.25);
+  border-color: var(--purple-lt);
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 8px 20px rgba(108,99,255,0.35);
 }
-.avatar-btn:active { transform: scale(0.95); }
+.avatar-btn:active { transform: translateY(1px) scale(0.97); }
 .avatar-btn.selected {
-  background: rgba(255,217,61,0.2);
-  border-color: var(--yellow);
-  box-shadow: 0 0 0 3px rgba(255,217,61,0.4), 0 8px 24px rgba(255,217,61,0.3);
-  transform: scale(1.18);
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  border-color: rgba(255,255,255,0.4);
+  box-shadow: 0 6px 20px rgba(108,99,255,0.55), 0 0 0 3px rgba(255,255,255,0.15);
+  transform: translateY(-4px) scale(1.09);
+}
+.upload-btn {
+  grid-column: span 2;
+  aspect-ratio: 2 / 1;
+}
+.upload-btn span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.upload-btn .camera-icon {
+  font-size: 1.8rem;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1022,6 +1039,7 @@ body {
 
     <p class="section-label">🎭 Elige tu personaje</p>
     <div class="avatar-grid" id="avatarGrid"></div>
+    <input type="file" id="avatarUpload" accept="image/*" style="display:none">
 
     <button class="play-btn" onclick="startGame()">🎮 ¡JUGAR!</button>
   </div>
@@ -1255,7 +1273,19 @@ function shakeGapBubble() {
 /* ════════════════════════════════════════
    PLAYER STATE & SETUP
    ════════════════════════════════════════ */
-const player = { name: '', age: null, avatar: '🦊' };
+const player = { name: '', age: null, avatarIndex: null, avatar: `<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="25" width="40" height="20" rx="10" ry="10" fill="#FF4500"/>
+    <circle cx="25" cy="15" r="12" fill="#FFD93D"/>
+    <circle cx="22" cy="12" r="2" fill="#000"/>
+    <circle cx="28" cy="12" r="2" fill="#000"/>
+    <path d="M 20 16 Q 25 18 30 16" stroke="#000" stroke-width="1" fill="none"/>
+    <rect x="18" y="8" width="14" height="4" rx="2" ry="2" fill="#FFD700"/>
+  </svg>` };
+
+const customAvatar = localStorage.getItem('customAvatar');
+if (customAvatar) {
+  player.avatar = customAvatar;
+}
 
 // Build age buttons
 const ages = [5, 6, 7, 8, 9, 10];
@@ -1274,20 +1304,94 @@ ages.forEach(age => {
 });
 
 // Build avatar buttons
-const avatars = ['🦊','🐸','🦁','🐧','🦄','🤖'];
+const avatars = [
+  `<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="25" width="34" height="18" rx="10" ry="10" fill="#FF7A42"/>
+    <ellipse cx="25" cy="15" rx="11" ry="12" fill="#FFE0B2"/>
+    <path d="M 13 16 C 15 10 20 6 25 6 C 30 6 35 10 37 16 Q 35 12 25 12 Q 15 12 13 16" fill="#FFD700"/>
+    <path d="M 17 13 Q 25 6 33 13" stroke="#F2C94C" stroke-width="3" fill="none"/>
+    <path d="M 18 15 Q 25 11 32 15" stroke="#F2C94C" stroke-width="3" fill="none"/>
+    <circle cx="20" cy="14" r="2" fill="#000"/>
+    <circle cx="30" cy="14" r="2" fill="#000"/>
+    <path d="M 19 18 Q 25 22 31 18" stroke="#000" stroke-width="1.2" fill="none"/>
+  </svg>`,
+  `<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="25" width="34" height="18" rx="10" ry="10" fill="#5E85FF"/>
+    <ellipse cx="25" cy="15" rx="11" ry="12" fill="#A5653A"/>
+    <path d="M 14 16 C 17 10 21 6 25 6 C 29 6 33 10 36 16 Q 34 12 31 11 Q 25 9 19 11 Q 16 12 14 16" fill="#1F1F1F"/>
+    <path d="M 16 16 C 18 11 22 9 25 9 C 28 9 32 11 34 16" fill="#1F1F1F"/>
+    <circle cx="20" cy="14" r="2" fill="#000"/>
+    <circle cx="30" cy="14" r="2" fill="#000"/>
+    <path d="M 19 18 Q 25 22 31 18" stroke="#000" stroke-width="1.2" fill="none"/>
+    <path d="M 20 20 Q 25 24 30 20" stroke="#000" stroke-width="1" fill="none" opacity="0.6"/>
+  </svg>`,
+  `<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="25" width="34" height="18" rx="10" ry="10" fill="#FF90C6"/>
+    <ellipse cx="25" cy="15" rx="11" ry="12" fill="#FFE0B2"/>
+    <path d="M 12 16 C 16 6 22 4 25 4 C 28 4 34 6 38 16 Q 35 12 30 10 Q 25 8 20 10 Q 15 12 12 16" fill="#FFDD55"/>
+    <path d="M 14 16 C 18 10 22 7 25 7 C 28 7 32 10 36 16" fill="#FFD54F"/>
+    <path d="M 20 14 Q 25 10 30 14" stroke="#FFD700" stroke-width="3" fill="none"/>
+    <path d="M 16 17 Q 25 12 34 17" stroke="#FFC93C" stroke-width="2" fill="none"/>
+    <circle cx="20" cy="15" r="2" fill="#000"/>
+    <circle cx="30" cy="15" r="2" fill="#000"/>
+    <path d="M 19 19 Q 25 23 31 19" stroke="#000" stroke-width="1.2" fill="none"/>
+  </svg>`,
+  `<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="25" width="34" height="18" rx="10" ry="10" fill="#8E53FF"/>
+    <ellipse cx="25" cy="15" rx="11" ry="12" fill="#8B5A44"/>
+    <path d="M 15 14 C 18 6 23 4 25 4 C 27 4 32 6 35 14 Q 33 11 30 10 Q 25 8 20 10 Q 17 11 15 14" fill="#4D2F1D"/>
+    <path d="M 32 13 C 36 11 38 8 39 5" stroke="#4D2F1D" stroke-width="2" fill="none"/>
+    <path d="M 14 16 C 18 10 22 7 25 7 C 28 7 32 10 36 16" fill="#4D2F1D" opacity="0.9"/>
+    <circle cx="20" cy="14" r="2" fill="#000"/>
+    <circle cx="30" cy="14" r="2" fill="#000"/>
+    <path d="M 19 18 Q 25 22 31 18" stroke="#000" stroke-width="1.2" fill="none"/>
+    <path d="M 18 18 Q 25 20 32 18" stroke="#4D2F1D" stroke-width="1" fill="none" opacity="0.5"/>
+  </svg>`
+];
 const avatarGrid = document.getElementById('avatarGrid');
-avatars.forEach(emoji => {
+avatars.forEach((svg, index) => {
   const btn = document.createElement('button');
   btn.className = 'avatar-btn';
-  if (emoji === player.avatar) btn.classList.add('selected');
-  btn.textContent = emoji;
-  btn.setAttribute('aria-label', `Avatar ${emoji}`);
+  if (index === player.avatarIndex) btn.classList.add('selected');
+  btn.innerHTML = svg;
+  btn.setAttribute('aria-label', `Avatar ${index + 1}`);
   btn.addEventListener('click', () => {
-    player.avatar = emoji;
+    player.avatarIndex = index;
+    player.avatar = svg;
     document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   });
   avatarGrid.appendChild(btn);
+});
+
+// Add upload button
+const uploadBtn = document.createElement('button');
+uploadBtn.className = 'avatar-btn upload-btn';
+uploadBtn.innerHTML = player.avatarIndex === 4 ? player.avatar : `<span><span class="camera-icon">📷</span>SUBIR FOTO</span>`;
+if (player.avatarIndex === 4) uploadBtn.classList.add('selected');
+uploadBtn.addEventListener('click', () => {
+  document.getElementById('avatarUpload').click();
+});
+avatarGrid.appendChild(uploadBtn);
+
+// Handle file upload
+const avatarUpload = document.getElementById('avatarUpload');
+avatarUpload.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result;
+      const imgHtml = `<img src="${base64}" style="width:40px; height:40px; border-radius:20px; border:3px solid #FF6584;">`;
+      player.avatar = imgHtml;
+      player.avatarIndex = 4;
+      localStorage.setItem('customAvatar', imgHtml);
+      document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+      uploadBtn.classList.add('selected');
+      uploadBtn.innerHTML = imgHtml;
+    };
+    reader.readAsDataURL(file);
+  }
 });
 
 /* ════════════════════════════════════════
@@ -1394,7 +1498,7 @@ function startGame() {
   currentQ = 0; score = 0;
   totalCorrect = 0; totalBonus = 0; totalFirstAttempt = 0;
 
-  document.getElementById('ghAvatar').textContent = player.avatar;
+  document.getElementById('ghAvatar').innerHTML = player.avatar;
   document.getElementById('ghName').textContent = player.name;
   document.getElementById('ghTotal').textContent = TOTAL_Q;
   document.getElementById('ghScore').textContent = score;
