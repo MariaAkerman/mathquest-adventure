@@ -735,6 +735,19 @@ body {
   user-select: none;
 }
 
+/* Story question for thematic problems */
+.story-question {
+  font-size: 1.4rem;
+  color: #333;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 15px;
+  border: 2px solid #ddd;
+  margin: 10px 0;
+  animation: bubbleIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
 /* ═══════════════════════════════════════════════════
    ANSWER INPUT + CHECK BUTTON
    ═══════════════════════════════════════════════════ */
@@ -1056,6 +1069,99 @@ body {
   .gh-avatar-wrap { width: 44px; height: 44px; }
   .gh-avatar-inner { width: 36px; height: 36px; font-size: 1.4rem; }
 }
+
+/* ═══════════════════════════════════════════════════
+   THEME STYLES
+   ═══════════════════════════════════════════════════ */
+
+#gameScreen.futbol {
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+  position: relative;
+}
+#gameScreen.futbol::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+#gameScreen.futbol .bubble::before {
+  content: '⚽';
+  position: absolute;
+  top: -5px; right: -5px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+#gameScreen.tenis {
+  background: linear-gradient(135deg, #FFC107 0%, #FF8F00 100%);
+  position: relative;
+}
+#gameScreen.tenis::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.2) 0%, transparent 50%);
+  pointer-events: none;
+}
+#gameScreen.tenis .bubble::before {
+  content: '🎾';
+  position: absolute;
+  top: -5px; right: -5px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+#gameScreen.baile {
+  background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
+  position: relative;
+}
+#gameScreen.baile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+#gameScreen.baile .bubble::before {
+  content: '💃';
+  position: absolute;
+  top: -5px; right: -5px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+#gameScreen.dibujos {
+  background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+  position: relative;
+}
+#gameScreen.dibujos::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+#gameScreen.dibujos .bubble::before {
+  content: '🌟';
+  position: absolute;
+  top: -5px; right: -5px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+#gameScreen.default {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
 </style>
 </head>
 <body>
@@ -1517,60 +1623,204 @@ function randomGapIndex(len) {
 }
 
 function generateSeries(age) {
-  const allSeries = [];
-  if (age <= 6) {
-    const pools = [
-      { seq:[2,4,6,8,10],   hint:'Serie de 2 en 2' },
-      { seq:[4,6,8,10,12],  hint:'Serie de 2 en 2' },
-      { seq:[1,2,3,4,5],    hint:'Serie de 1 en 1' },
-      { seq:[6,7,8,9,10],   hint:'Serie de 1 en 1' },
-      { seq:[10,12,14,16,18],hint:'Serie de 2 en 2' },
-      { seq:[2,4,6,8,10,12],hint:'Serie de 2 en 2' },
-      { seq:[1,3,5,7,9],    hint:'Serie de 2 en 2' },
-      { seq:[5,6,7,8,9],    hint:'Serie de 1 en 1' },
-      { seq:[8,10,12,14,16],hint:'Serie de 2 en 2' },
-      { seq:[3,4,5,6,7],    hint:'Serie de 1 en 1' },
-    ];
+  const allProblems = [];
+  const tematica = tematicaElegida || 'default';
+
+  const problemPools = {
+    futbol: {
+      '5-6': [
+        { question: "Messi marcó 3 goles y luego 2 más. ¿Cuántos goles ha marcado en total?", answer: 5, hint: "Suma los goles" },
+        { question: "En el campo hay 4 balones. Si llegan 3 más, ¿cuántos balones hay ahora?", answer: 7, hint: "Suma los balones" },
+        { question: "Un equipo tiene 5 jugadores. Si entran 2 suplentes, ¿cuántos jugadores hay en total?", answer: 7, hint: "Cuenta todos los jugadores" },
+        { question: "Cristiano anotó 6 goles en la liga. Si marca 4 más, ¿cuántos tendrá?", answer: 10, hint: "Suma los goles nuevos" },
+        { question: "Hay 8 porterías en el estadio. Si quitan 3, ¿cuántas quedan?", answer: 5, hint: "Resta las porterías quitadas" },
+        { question: "Un partido dura 90 minutos. Si ya pasaron 40, ¿cuántos quedan?", answer: 50, hint: "Resta el tiempo pasado" },
+        { question: "Mbappé corrió 7 kilómetros. Si corre 3 más, ¿cuántos en total?", answer: 10, hint: "Suma los kilómetros" },
+        { question: "En el banquillo hay 4 jugadores. Si salen 2, ¿cuántos quedan?", answer: 2, hint: "Resta los que salieron" },
+        { question: "Un balón cuesta 10 euros. Si compras 2, ¿cuánto pagas?", answer: 20, hint: "Multiplica el precio por la cantidad" },
+        { question: "El estadio tiene 20 filas. Si cada fila tiene 5 asientos, ¿cuántos asientos hay?", answer: 100, hint: "Multiplica filas por asientos" }
+      ],
+      '7-8': [
+        { question: "En el partido hay 11 jugadores en el campo. Si entran 3 suplentes, ¿cuántos jugadores hay ahora?", answer: 14, hint: "Suma los suplentes" },
+        { question: "Un equipo ha ganado 15 partidos y perdido 7. ¿Cuántos partidos más ha ganado que perdido?", answer: 8, hint: "Resta las pérdidas de las ganancias" },
+        { question: "El balón pesa 400 gramos. Si hay 5 balones, ¿cuánto pesan todos?", answer: 2000, hint: "Multiplica el peso por la cantidad" },
+        { question: "Un jugador corre 10 metros por segundo. En 6 segundos, ¿cuántos metros corre?", answer: 60, hint: "Multiplica velocidad por tiempo" },
+        { question: "El estadio tiene 50 filas con 20 asientos cada una. ¿Cuántos asientos hay?", answer: 1000, hint: "Multiplica filas por asientos" },
+        { question: "Un partido tiene 2 tiempos de 45 minutos. ¿Cuánto dura?", answer: 90, hint: "Suma los tiempos" },
+        { question: "Si un gol vale 3 puntos, ¿cuántos puntos valen 4 goles?", answer: 12, hint: "Multiplica goles por puntos" },
+        { question: "Hay 22 jugadores en total. Si 11 están en el campo, ¿cuántos en el banquillo?", answer: 11, hint: "Resta los del campo" },
+        { question: "Un entrenador tiene 25 jugadores. Si vende 5, ¿cuántos le quedan?", answer: 20, hint: "Resta los vendidos" },
+        { question: "Cada gol da 2 puntos extra. Con 3 goles, ¿cuántos puntos extra?", answer: 6, hint: "Multiplica goles por puntos extra" }
+      ],
+      '9-10': [
+        { question: "Un equipo jugó 30 partidos, ganó 18, empató 6. ¿Cuántos perdió?", answer: 6, hint: "Resta ganancias y empates del total" },
+        { question: "El balón viaja a 100 km/h. En 2 horas, ¿cuántos km recorre?", answer: 200, hint: "Multiplica velocidad por tiempo" },
+        { question: "Un estadio tiene 50000 asientos. Si está lleno al 80%, ¿cuánta gente hay?", answer: 40000, hint: "Multiplica por el porcentaje" },
+        { question: "Cada jugador bebe 2 litros de agua por partido. Con 11 jugadores, ¿cuántos litros?", answer: 22, hint: "Multiplica por jugadores" },
+        { question: "Un contrato dura 5 años. Si pasan 3, ¿cuántos quedan?", answer: 2, hint: "Resta los años pasados" },
+        { question: "Un gol en el último minuto vale doble. Si vale 3 puntos, ¿cuánto vale?", answer: 6, hint: "Multiplica por 2" },
+        { question: "Hay 100 balones. Si se rompen 15, ¿cuántos quedan?", answer: 85, hint: "Resta los rotos" },
+        { question: "Un jugador gana 100000 euros al año. En 4 años, ¿cuánto gana?", answer: 400000, hint: "Multiplica sueldo por años" },
+        { question: "El campo mide 100m x 60m. ¿Cuál es el perímetro?", answer: 320, hint: "Suma los lados: 2*(largo+ancho)" },
+        { question: "Un torneo tiene 16 equipos. Si quedan 8, ¿cuántos eliminados?", answer: 8, hint: "Resta los que quedan del total" }
+      ]
+    },
+    tenis: {
+      '5-6': [
+        { question: "Rafa Nadal ganó 4 juegos en el primer set y 2 más en el segundo. ¿Cuántos juegos ha ganado en total?", answer: 6, hint: "Suma los juegos" },
+        { question: "Una pelota de tenis cuesta 5 euros. Si compras 3, ¿cuánto pagas?", answer: 15, hint: "Multiplica precio por cantidad" },
+        { question: "En la pista hay 2 raquetas. Si llegan 4 más, ¿cuántas hay?", answer: 6, hint: "Suma las raquetas" },
+        { question: "Serena Williams anotó 7 puntos. Si anota 3 más, ¿cuántos tendrá?", answer: 10, hint: "Suma los puntos" },
+        { question: "Un set tiene 6 juegos. Si ya jugó 3, ¿cuántos quedan?", answer: 3, hint: "Resta los jugados" },
+        { question: "La red mide 1 metro de alto. Si hay 2 redes, ¿cuánto miden juntas?", answer: 2, hint: "Suma las alturas" },
+        { question: "Un partido dura 120 minutos. Si pasaron 60, ¿cuántos quedan?", answer: 60, hint: "Resta el tiempo pasado" },
+        { question: "Hay 4 pelotas en la cancha. Si se pierden 2, ¿cuántas quedan?", answer: 2, hint: "Resta las perdidas" },
+        { question: "Cada punto vale 15. Con 3 puntos, ¿cuánto vale?", answer: 45, hint: "Multiplica puntos por valor" },
+        { question: "El torneo tiene 8 rondas. Si quedan 2, ¿cuántas pasaron?", answer: 6, hint: "Resta las que quedan" }
+      ],
+      '7-8': [
+        { question: "Un partido de tenis tiene 3 sets. Si cada set dura 20 minutos, ¿cuánto dura el partido en total?", answer: 60, hint: "Multiplica sets por duración" },
+        { question: "Alcaraz ha jugado 15 torneos este año y ha ganado 9. ¿Cuántos torneos ha perdido?", answer: 6, hint: "Resta las ganancias del total" },
+        { question: "La pista mide 120m x 60m. ¿Cuál es el área?", answer: 7200, hint: "Multiplica largo por ancho" },
+        { question: "Cada ace vale 10 puntos extra. Con 5 aces, ¿cuántos puntos extra?", answer: 50, hint: "Multiplica aces por puntos" },
+        { question: "Un torneo tiene 128 jugadores. Si quedan 64, ¿cuántos eliminados?", answer: 64, hint: "Resta los que quedan" },
+        { question: "Una raqueta pesa 300g. Con 2 raquetas, ¿cuánto pesan?", answer: 600, hint: "Multiplica peso por cantidad" },
+        { question: "Un set tiene 12 puntos. Si tiene 8, ¿cuántos le faltan?", answer: 4, hint: "Resta los que tiene" },
+        { question: "El premio es de 100000 euros. Si hay 2 finalistas, ¿cuánto se reparte?", answer: 50000, hint: "Divide entre finalistas" },
+        { question: "Cada saque viaja a 200 km/h. En 5 saques, ¿cuál es la velocidad promedio?", answer: 200, hint: "La velocidad es la misma" },
+        { question: "Hay 4 pelotas por juego. En 6 juegos, ¿cuántas pelotas?", answer: 24, hint: "Multiplica juegos por pelotas" }
+      ],
+      '9-10': [
+        { question: "Federer ha ganado 20 Grand Slams. Si Djokovic tiene 24, ¿cuántos más tiene Djokovic?", answer: 4, hint: "Resta los de Federer" },
+        { question: "Un partido dura 3 horas. Si cada hora cuesta 50 euros ver, ¿cuánto cuesta?", answer: 150, hint: "Multiplica horas por costo" },
+        { question: "La bola rebota 5 veces por segundo. En 10 segundos, ¿cuántas veces?", answer: 50, hint: "Multiplica por segundos" },
+        { question: "Un estadio tiene 15000 asientos. Si está lleno al 90%, ¿cuánta gente?", answer: 13500, hint: "Multiplica por porcentaje" },
+        { question: "Cada punto dura 10 segundos. En un set de 48 puntos, ¿cuánto tiempo?", answer: 480, hint: "Multiplica puntos por duración" },
+        { question: "El ranking baja 100 puntos por derrota. Con 3 derrotas, ¿cuántos puntos baja?", answer: 300, hint: "Multiplica derrotas por puntos" },
+        { question: "Un torneo reparte 10 millones. Si hay 8 premios, ¿cuánto el promedio?", answer: 1250000, hint: "Divide total entre premios" },
+        { question: "La pista tiene 4 líneas. Si cada línea mide 25m, ¿cuánto miden todas?", answer: 100, hint: "Multiplica líneas por longitud" },
+        { question: "Un jugador entrena 2 horas al día. En 7 días, ¿cuántas horas?", answer: 14, hint: "Multiplica días por horas" },
+        { question: "El récord de aces es 1137. Si Federer tiene 1050, ¿cuántos le faltan?", answer: 87, hint: "Resta los que tiene" }
+      ]
+    },
+    baile: {
+      '5-6': [
+        { question: "Ana hace 4 pasos hacia delante y 2 hacia atrás. ¿Cuántos pasos ha dado en total?", answer: 6, hint: "Suma todos los pasos" },
+        { question: "En la pista hay 3 bailarines. Si llegan 5 más, ¿cuántos hay?", answer: 8, hint: "Suma los bailarines" },
+        { question: "Una canción dura 3 minutos. Si bailas 2 canciones, ¿cuánto tiempo?", answer: 6, hint: "Multiplica duración por canciones" },
+        { question: "Carlos gira 5 veces. Si gira 4 más, ¿cuántas en total?", answer: 9, hint: "Suma las giros" },
+        { question: "Hay 6 luces en el escenario. Si apagan 2, ¿cuántas quedan?", answer: 4, hint: "Resta las apagadas" },
+        { question: "Cada paso vale 1 punto. Con 7 pasos, ¿cuántos puntos?", answer: 7, hint: "Los puntos son los pasos" },
+        { question: "La coreografía tiene 10 movimientos. Si haces 4, ¿cuántos faltan?", answer: 6, hint: "Resta los hechos" },
+        { question: "Un grupo tiene 8 bailarines. Si salen 3, ¿cuántos quedan?", answer: 5, hint: "Resta los que salen" },
+        { question: "Cada salto da 2 puntos. Con 3 saltos, ¿cuántos puntos?", answer: 6, hint: "Multiplica saltos por puntos" },
+        { question: "La música suena 4 minutos. Si para 1 minuto, ¿cuánto queda?", answer: 3, hint: "Resta el tiempo parado" }
+      ],
+      '7-8': [
+        { question: "Un baile tiene 12 pasos. Si repites la secuencia 3 veces, ¿cuántos pasos en total?", answer: 36, hint: "Multiplica pasos por repeticiones" },
+        { question: "En el espectáculo hay 20 bailarines. Si cada uno hace 5 giros, ¿cuántos giros en total?", answer: 100, hint: "Multiplica bailarines por giros" },
+        { question: "La canción dura 240 segundos. Si bailas la mitad, ¿cuánto tiempo?", answer: 120, hint: "Divide por 2" },
+        { question: "Cada movimiento vale 10 puntos. Con 8 movimientos, ¿cuántos puntos?", answer: 80, hint: "Multiplica movimientos por puntos" },
+        { question: "Un grupo tiene 15 miembros. Si se unen 5 más, ¿cuántos son?", answer: 20, hint: "Suma los nuevos" },
+        { question: "La coreografía dura 5 minutos. Si la aceleras al doble, ¿cuánto dura?", answer: 2.5, hint: "Divide por 2" },
+        { question: "Hay 100 luces. Si parpadean 4 veces por segundo, ¿cuántas veces en 5 segundos?", answer: 20, hint: "Multiplica parpadeos por segundos" },
+        { question: "Cada bailarina tiene 2 zapatos. Con 10 bailarinas, ¿cuántos zapatos?", answer: 20, hint: "Multiplica bailarinas por zapatos" },
+        { question: "El escenario mide 10m x 8m. ¿Cuál es el área?", answer: 80, hint: "Multiplica largo por ancho" },
+        { question: "Una rutina tiene 50 movimientos. Si haces 30, ¿qué porcentaje completaste?", answer: 60, hint: "Divide hechos por total y multiplica por 100" }
+      ],
+      '9-10': [
+        { question: "Un espectáculo dura 2 horas. Si cada hora cuesta 100 euros ver, ¿cuánto cuesta?", answer: 200, hint: "Multiplica horas por costo" },
+        { question: "Hay 50 espectadores. Si cada uno aplaude 10 veces, ¿cuántos aplausos?", answer: 500, hint: "Multiplica espectadores por aplausos" },
+        { question: "La música tiene 180 BPM. Si baja a 120, ¿cuánto bajó?", answer: 60, hint: "Resta el nuevo del original" },
+        { question: "Un baile tiene 3 fases de 4 minutos cada una. ¿Cuánto dura?", answer: 12, hint: "Multiplica fases por duración" },
+        { question: "Cada giro da 5 puntos. Con 12 giros, ¿cuántos puntos?", answer: 60, hint: "Multiplica giros por puntos" },
+        { question: "El grupo tiene 25 miembros. Si el 20% se va, ¿cuántos quedan?", answer: 20, hint: "Multiplica por 0.8" },
+        { question: "La pista mide 20m x 15m. ¿Cuál es el perímetro?", answer: 70, hint: "Suma los lados" },
+        { question: "Cada nota musical dura 0.5 segundos. En 10 segundos, ¿cuántas notas?", answer: 20, hint: "Divide tiempo por duración" },
+        { question: "Un premio vale 5000 euros. Si hay 3 ganadores, ¿cuánto cada uno?", answer: 1666.67, hint: "Divide entre ganadores" },
+        { question: "La coreografía tiene 100 pasos. Si repites 5 veces, ¿cuántos pasos?", answer: 500, hint: "Multiplica pasos por repeticiones" }
+      ]
+    },
+    dibujos: {
+      '5-6': [
+        { question: "Mickey tiene 3 amigos y Minnie tiene 2. ¿Cuántos amigos en total?", answer: 5, hint: "Suma los amigos" },
+        { question: "En la isla hay 4 tesoros. Si encuentran 3 más, ¿cuántos hay?", answer: 7, hint: "Suma los tesoros" },
+        { question: "Donald tiene 5 plumas. Si pierde 2, ¿cuántas le quedan?", answer: 3, hint: "Resta las perdidas" },
+        { question: "Goofy salta 6 veces. Si salta 4 más, ¿cuántas en total?", answer: 10, hint: "Suma los saltos" },
+        { question: "Hay 8 estrellas en el cielo. Si caen 3, ¿cuántas quedan?", answer: 5, hint: "Resta las caídas" },
+        { question: "Cada caramelo vale 1 punto. Con 9 caramelos, ¿cuántos puntos?", answer: 9, hint: "Los puntos son los caramelos" },
+        { question: "La aventura dura 7 días. Si pasaron 4, ¿cuántos quedan?", answer: 3, hint: "Resta los pasados" },
+        { question: "Pluto tiene 2 huesos. Si encuentra 5 más, ¿cuántos tiene?", answer: 7, hint: "Suma los encontrados" },
+        { question: "En el castillo hay 10 habitaciones. Si entras en 6, ¿cuántas quedan?", answer: 4, hint: "Resta las entradas" },
+        { question: "Cada estrella brilla 2 segundos. Con 5 estrellas, ¿cuánto tiempo?", answer: 10, hint: "Multiplica estrellas por tiempo" }
+      ],
+      '7-8': [
+        { question: "En Dragon Ball, Goku tiene 7 esferas. Si encuentra 3 más, ¿cuántas tiene?", answer: 10, hint: "Suma las esferas" },
+        { question: "Doraemon tiene 50 inventos. Si usa 15, ¿cuántos le quedan?", answer: 35, hint: "Resta los usados" },
+        { question: "En Toy Story, hay 3 juguetes. Si llegan 7 más, ¿cuántos hay?", answer: 10, hint: "Suma los juguetes" },
+        { question: "Cada poder vale 10 puntos. Con 8 poderes, ¿cuántos puntos?", answer: 80, hint: "Multiplica poderes por puntos" },
+        { question: "La isla del tesoro mide 100m x 50m. ¿Cuál es el área?", answer: 5000, hint: "Multiplica largo por ancho" },
+        { question: "Mickey tiene 20 amigos. Si el 25% se va, ¿cuántos quedan?", answer: 15, hint: "Multiplica por 0.75" },
+        { question: "Cada estrella da 5 puntos. Con 12 estrellas, ¿cuántos puntos?", answer: 60, hint: "Multiplica estrellas por puntos" },
+        { question: "En el mundo mágico hay 64 portales. Si quedan 32, ¿cuántos cerrados?", answer: 32, hint: "Resta los que quedan" },
+        { question: "Un hechizo dura 30 minutos. Si se usa 3 veces, ¿cuánto tiempo?", answer: 90, hint: "Multiplica duración por usos" },
+        { question: "Cada diamante vale 100 puntos. Con 6 diamantes, ¿cuántos puntos?", answer: 600, hint: "Multiplica diamantes por puntos" }
+      ],
+      '9-10': [
+        { question: "En Dragon Ball, Vegeta tiene poder nivel 8000. Si sube 2000, ¿cuál es el nuevo?", answer: 10000, hint: "Suma el aumento" },
+        { question: "Doraemon viaja en el tiempo. Si va 50 años atrás, ¿en qué año está si ahora es 2024?", answer: 1974, hint: "Resta los años" },
+        { question: "En Toy Story, el ejército de juguetes tiene 100 soldados. Si pierden 30, ¿cuántos quedan?", answer: 70, hint: "Resta las pérdidas" },
+        { question: "Cada transformación da 500 puntos. Con 4 transformaciones, ¿cuántos puntos?", answer: 2000, hint: "Multiplica transformaciones por puntos" },
+        { question: "El mapa del tesoro mide 200cm x 150cm. ¿Cuál es el área?", answer: 30000, hint: "Multiplica largo por ancho" },
+        { question: "Mickey gana 1000 monedas. Si gasta el 40%, ¿cuántas le quedan?", answer: 600, hint: "Multiplica por 0.6" },
+        { question: "Cada misión vale 250 puntos. Con 8 misiones, ¿cuántos puntos?", answer: 2000, hint: "Multiplica misiones por puntos" },
+        { question: "En el reino mágico hay 1000 habitantes. Si el 15% se va, ¿cuántos quedan?", answer: 850, hint: "Multiplica por 0.85" },
+        { question: "Un viaje en el tiempo dura 10 horas. Si se hace 5 veces, ¿cuánto tiempo?", answer: 50, hint: "Multiplica duración por veces" },
+        { question: "Cada estrella mágica vale 1000 puntos. Con 7 estrellas, ¿cuántos puntos?", answer: 7000, hint: "Multiplica estrellas por puntos" }
+      ]
+    },
+    default: {
+      '5-6': [
+        { seq:[2,4,6,8,10], hint:'Serie de 2 en 2' },
+        { seq:[1,2,3,4,5], hint:'Serie de 1 en 1' },
+        { seq:[5,6,7,8,9], hint:'Serie de 1 en 1' },
+        { seq:[1,3,5,7,9], hint:'Serie de 2 en 2' },
+        { seq:[3,4,5,6,7], hint:'Serie de 1 en 1' }
+      ],
+      '7-8': [
+        { seq:[3,6,9,12,15], hint:'Serie de 3 en 3' },
+        { seq:[5,10,15,20,25], hint:'Serie de 5 en 5' },
+        { seq:[6,9,12,15,18], hint:'Serie de 3 en 3' },
+        { seq:[9,12,15,18,21], hint:'Serie de 3 en 3' },
+        { seq:[12,15,18,21,24], hint:'Serie de 3 en 3' }
+      ],
+      '9-10': [
+        { seq:[50,45,40,35,30], hint:'Serie restando 5' },
+        { seq:[100,90,80,70,60], hint:'Serie restando 10' },
+        { seq:[2,4,8,16,32], hint:'Serie doble' },
+        { seq:[1,4,7,10,13], hint:'Serie de 3 en 3' },
+        { seq:[20,17,14,11,8], hint:'Serie restando 3' }
+      ]
+    }
+  };
+
+  const ageGroup = age <= 6 ? '5-6' : age <= 8 ? '7-8' : '9-10';
+  const pools = problemPools[tematica][ageGroup] || problemPools.default[ageGroup];
+
+  if (tematica === 'default' || !problemPools[tematica]) {
+    // Use series format
     shuffle(pools).slice(0, 5).forEach(p => {
       const gi = randomGapIndex(p.seq.length);
-      allSeries.push({ numbers:p.seq, gapIndex:gi, answer:p.seq[gi], hint:p.hint });
-    });
-  } else if (age <= 8) {
-    const pools = [
-      { seq:[3,6,9,12,15],   hint:'Serie de 3 en 3' },
-      { seq:[5,10,15,20,25], hint:'Serie de 5 en 5' },
-      { seq:[10,15,20,25,30],hint:'Serie de 5 en 5' },
-      { seq:[6,9,12,15,18],  hint:'Serie de 3 en 3' },
-      { seq:[15,20,25,30,35],hint:'Serie de 5 en 5' },
-      { seq:[9,12,15,18,21], hint:'Serie de 3 en 3' },
-      { seq:[20,25,30,35,40],hint:'Serie de 5 en 5' },
-      { seq:[12,15,18,21,24],hint:'Serie de 3 en 3' },
-      { seq:[25,30,35,40,45],hint:'Serie de 5 en 5' },
-      { seq:[30,33,36,39,42],hint:'Serie de 3 en 3' },
-    ];
-    shuffle(pools).slice(0, 5).forEach(p => {
-      const gi = randomGapIndex(p.seq.length);
-      allSeries.push({ numbers:p.seq, gapIndex:gi, answer:p.seq[gi], hint:p.hint });
+      allProblems.push({ numbers: p.seq, gapIndex: gi, answer: p.seq[gi], hint: p.hint });
     });
   } else {
-    const pools = [
-      { seq:[50,45,40,35,30],    hint:'Serie restando 5' },
-      { seq:[100,90,80,70,60],   hint:'Serie restando 10' },
-      { seq:[2,4,8,16,32],       hint:'Serie doble' },
-      { seq:[1,4,7,10,13],       hint:'Serie de 3 en 3' },
-      { seq:[20,17,14,11,8],     hint:'Serie restando 3' },
-      { seq:[5,10,20,40,80],     hint:'Serie doble' },
-      { seq:[64,32,16,8,4],      hint:'Serie a la mitad' },
-      { seq:[3,7,11,15,19],      hint:'Serie de 4 en 4' },
-      { seq:[100,75,50,25,0],    hint:'Serie restando 25' },
-      { seq:[1,2,4,8,16,32],     hint:'Serie doble' },
-    ];
+    // Use problem format
     shuffle(pools).slice(0, 5).forEach(p => {
-      const gi = randomGapIndex(p.seq.length);
-      allSeries.push({ numbers:p.seq, gapIndex:gi, answer:p.seq[gi], hint:p.hint });
+      allProblems.push({ question: p.question, answer: p.answer, hint: p.hint });
     });
   }
-  return allSeries;
+
+  return allProblems;
 }
 
 /* ════════════════════════════════════════
@@ -1610,6 +1860,7 @@ function startGame() {
   document.getElementById('ghScore').textContent = score;
   document.getElementById('mainScreen').style.display = 'none';
   document.getElementById('gameScreen').classList.add('visible');
+  document.getElementById('gameScreen').classList.add(tematicaElegida || 'default');
   showQuestion();
 }
 
@@ -1622,30 +1873,39 @@ function showQuestion() {
   document.getElementById('questionZone').style.display = '';
   document.getElementById('ghCurrent').textContent = currentQ + 1;
   document.getElementById('progressBar').style.width = ((currentQ / TOTAL_Q) * 100) + '%';
-  document.getElementById('questionHint').textContent = q.hint + ' 🔢';
+  document.getElementById('questionHint').textContent = q.hint;
   attempts = 0;
   updateAttemptDots();
 
   const row = document.getElementById('bubblesRow');
-  row.innerHTML = '';
-  q.numbers.forEach((num, idx) => {
-    if (idx > 0) {
-      const sep = document.createElement('span');
-      sep.className = 'bubble-sep';
-      sep.textContent = ',';
-      row.appendChild(sep);
-    }
-    const bub = document.createElement('div');
-    if (idx === q.gapIndex) {
-      bub.className = 'bubble gap';
-      bub.textContent = '?';
-    } else {
-      bub.className = 'bubble num';
-      bub.textContent = num;
-    }
-    bub.style.animationDelay = (idx * 0.08) + 's';
-    row.appendChild(bub);
-  });
+  const label = document.querySelector('.question-label');
+  if (q.question) {
+    // Thematic problem
+    label.textContent = 'Resuelve el problema';
+    row.innerHTML = '<div class="story-question">' + q.question + '</div>';
+  } else {
+    // Number series
+    label.textContent = '¿Qué número falta?';
+    row.innerHTML = '';
+    q.numbers.forEach((num, idx) => {
+      if (idx > 0) {
+        const sep = document.createElement('span');
+        sep.className = 'bubble-sep';
+        sep.textContent = ',';
+        row.appendChild(sep);
+      }
+      const bub = document.createElement('div');
+      if (idx === q.gapIndex) {
+        bub.className = 'bubble gap';
+        bub.textContent = '?';
+      } else {
+        bub.className = 'bubble num';
+        bub.textContent = num;
+      }
+      bub.style.animationDelay = (idx * 0.08) + 's';
+      row.appendChild(bub);
+    });
+  }
 
   const input = document.getElementById('answerInput');
   input.value = ''; input.disabled = false;
